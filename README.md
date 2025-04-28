@@ -9,10 +9,10 @@
                                  (_____|
 ```
 
-My very own basic AV running off signature-based detection, heuristic and behavioural analysis.
+My very own basic AV running off signature-based detection, heuristic and behavioural analysis, written in Python.
 
 # What is Eurofighter?
-Eurofighter is my very own anti-virus software designed to run on the Windows operating system, featuring basic signature-based and heuristic detection methods. 
+Eurofighter is my very own anti-virus software designed to run on the Windows operating system, featuring basic signature-based and heuristic detection methods. I originally decided to write this in C++ where I promptly realized that "This will take far too long and require a lot more effort for similar payout.". Yes, C++ is lovely but more the amount of extra libraries to link and alien syntax, Python is just more appealing and **simple**. 
 
 By no means is this project supposed to be a REAL anti-virus; it is a proof-of-concept to show my knowledge of 
 1) How anti-virus detects and terminates malware.
@@ -27,26 +27,25 @@ Project status and agenda can be found below. Everything is a work-in-progress a
 
 # Project Agenda
 ## Basic Stuff
-- Pick a language LOL; prbly C or C++, rust if i wanna learn sumn but doubt it
-- Get file IO figured out to get sha256 digest for samples, need library or sumn, might as well use win crypto API
-    - ifstream for IO and 
-- Find a signature DB to use online 
-    - use GET request to constantly update before scanning samples; might use malwarebazaar or malshare; get recent signatures then save them to a .txt file
+- Get file IO figured out to get sha256 digest for samples, will use Crypto++ library unless it's incompatible for some reason.
+- Find a signature DB to use online; either MalwareBazaar or Malshare.
         - Malwarebazaar: `GET https://bazaar.abuse.ch/api/v1/get_recent/?limit=100`
         - Malshare: `GET https://malshare.com/api.php?api_key=YOUR_API_KEY&action=get_recent`
         - Ensure no dup signatures by saving timestamp ft. date and time for future queries; select signatures from after previous query.
-    - local storage is possible thru CSV or .txt file
+        - Add signature of malicious files to local DB.
+        - Add common malware/program to DB as well; mimikatz, rubeus, etc.
+    - Local storage is possible thru .txt file for signature "DB"
 - Quarantine sample; put it in some protected folder, remove execution permissions, or just delete the sample forcefully.
     - Could rename malware as `malware-<computed_hash>` then move to a specified 'quarantine' folder and remove execution privileges using `icacls <malware_file.exe/dll> /remove:g <username>:X /c /t` .
     - Force delete the file using `DeleteFile(<filename.exe/dll>)` in code or just call `std::system`.
 ## Heuristic Analysis (100% apathy)
 ### Static
-- <strong>use [pe-parse](https://github.com/trailofbits/pe-parse) to get PE information!</strong>
 - Check PE info; check PE header for Import/Export Directory Tables (IAT/EAT) for DLLs and imported functions. 
     - Namely createremotethread, writeprocessmemory, virtualalloc and whatnot.
 - Check .text section for malicious instructions and obfuscation in PE. If .text is small then it may be a packed sample!
-- Run strings command via `cstdlib` and `system()` function on the sample 
-    - check for sus stuff; `cmd.exe`, `powershell.exe`, `regsvr32.exe`, `Rundll32.exe`, URLs, IPs, API functions, etc. 
+- Run strings command on the sample and check its output for bad stuff 
+    - Detect and decode base64 encoded strings and determine if bits are malicious or not.
+    - Check for sus stuff; `cmd.exe`, `powershell.exe`, `regsvr32.exe`, `Rundll32.exe`, URLs, IPs, API functions, etc. 
         - API functions include: 
             - `VirtualAlloc`; allocate writable/readable/executable memory, first step to executing malware in memory!
             - `WriteProcessMemory`; write process code to memory then execute in thread
@@ -69,7 +68,7 @@ Project status and agenda can be found below. Everything is a work-in-progress a
             - Return type of `WAIT_TIMEOUT` = still running, terminate sample forcefully. `WAIT_OBJECT_0` = exited succesfully. `WAIT_FAILED` = function failed, terminate sample, then run `GetLastError` and output info to console! 
             - Use `DWORD` data type to store return value!
     4) Cleanup when needed or when we note that the malware has stopped executing; whenever (Close handles will basically free system memory that is running your process. Terminate first, then CloseHandle)
-- <strong>NOTE: </stromg> We should run this all in a VM; take initial snapshot, run malware, rollback snapshot, repeat! VM is connected to NO networks.  
+- <strong>NOTE:</strong> We should run this all in a VM; take initial snapshot, run malware, rollback snapshot, repeat! VM is connected to NO networks.  
 - For scripting this from start to finish, the steps would be:
     1) Boot the VM and record a snapshot
     2) Copy malware sample to host
@@ -81,8 +80,5 @@ Project status and agenda can be found below. Everything is a work-in-progress a
 
 ## Sources
 A whole lot of Google and AI, of which  led me to consult further sources:
-- [FileSource doc for Crypto++](https://www.cryptopp.com/wiki/FileSource)
-- [HashFilter doc for Crypto++](https://cryptopp.com/wiki/HashFilter)
 - [icacls MS Docs](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/icacls) 
-- [StringSink doc for Crypto++](https://www.cryptopp.com/wiki/StringSink)
 
