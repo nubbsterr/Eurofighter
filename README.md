@@ -1,14 +1,4 @@
 # Eurofighter
-```
- _______                    ___ _       _                      
-(_______)                  / __|_)     | |     _               
- _____   _   _  ____ ___ _| |__ _  ____| |__ _| |_ _____  ____ 
-|  ___) | | | |/ ___) _ (_   __) |/ _  |  _ (_   _) ___ |/ ___)
-| |_____| |_| | |  | |_| || |  | ( (_| | | | || |_| ____| |    
-|_______)____/|_|   \___/ |_|  |_|\___ |_| |_| \__)_____)_|    
-                                 (_____|
-```
-
 My very own basic AV running off signature-based detection, heuristic and behavioural analysis, written in Python.
 
 # What is Eurofighter?
@@ -21,20 +11,11 @@ By no means is this project supposed to be a REAL anti-virus; it is a proof-of-c
 Yes, I do plan to discuss how to evade Eurofighter, though that shouldn't be hard. Even Defender has [DefenderCheck](https://github.com/matterpreter/DefenderCheck) to deal with among other tools xD
 
 # Project Status
-I will start working on this when I find the time to; hopefully that will be soon since I've been wanting to start this for a very long time!
-
 Project status and agenda can be found below. Everything is a work-in-progress and the entire project is designed to be a proof-of-concept, not a real AV (for now, maybe.) If you have suggestions, or wish to contribute, please feel free to contact me on Discord @ nubbieeee or submit a PR!
 
 # Project Agenda
 ## Basic Stuff
-- Get file IO figured out to get sha256 digest for samples, will use Crypto++ library unless it's incompatible for some reason.
-- Find a signature DB to use online; either MalwareBazaar or Malshare.
-        - Malwarebazaar: `GET https://bazaar.abuse.ch/api/v1/get_recent/?limit=100`
-        - Malshare: `GET https://malshare.com/api.php?api_key=YOUR_API_KEY&action=get_recent`
-        - Ensure no dup signatures by saving timestamp ft. date and time for future queries; select signatures from after previous query.
-        - Add signature of malicious files to local DB.
-        - Add common malware/program to DB as well; mimikatz, rubeus, etc.
-    - Local storage is possible thru .txt file for signature "DB"
+- Add common malware/program to DB as well; mimikatz, rubeus, etc.
 - Quarantine sample; put it in some protected folder, remove execution permissions, or just delete the sample forcefully.
     - Could rename malware as `malware-<computed_hash>` then move to a specified 'quarantine' folder and remove execution privileges using `icacls <malware_file.exe/dll> /remove:g <username>:X /c /t` .
     - Force delete the file using `DeleteFile(<filename.exe/dll>)` in code or just call `std::system`.
@@ -77,8 +58,4 @@ Project status and agenda can be found below. Everything is a work-in-progress a
     5) Copy logs from VM to host 
     6) Rollback VM then shutdown.
 - <strong>NOTE!</strong> Use a read-only shared folder on the VM to store the log data so it is NOT tampered with; TBD since 
-
-## Sources
-A whole lot of Google and AI, of which  led me to consult further sources:
-- [icacls MS Docs](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/icacls) 
 
