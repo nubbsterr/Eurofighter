@@ -31,15 +31,39 @@ def manualAdd(usrinput):
                 print(f"[+] Eurofighter successfully added a signature to db: {usrinput}")
             else:
                 print(f"[!] Eurofighter was served a duplicate entry and coult not include it: {usrinput}")
+    elif (re.fullmatch(r"\w+", usrinput, re.IGNORECASE)): # match for one or more word characters 
+        # query for 100 samples of given signature
+        url = "https://bazaar.abuse.ch/api/v1/"
+        param = {"query": "get_siginfo", "signature": {usrinput}, "limit": "100"}
+        httpheaders = { "Auth-Key": "AUTH_KEY_HERE" }
+        try:
+            response = requests.get(url, params=param, headers=httpheaders)
+            response.raise_for_status()
+            if response.status_code == 200: # nesting horror
+                print(f"[+] A status code of 200 (OK) was returned from MalwareBazaar.")
+                jsonresponse = response.json()
+                for element in jsonresponse["data"]: # check if the file is an exe or dll b4 adding to db
+                    if (element["file_type"] == "exe") or (element["file_type"] == "dll"):
+                        with open("signatures.txt", "a+") as db:
+                            content = db.read()
+                            if element["sha256_hash"] not in content:
+                                db.write(f"{element["sha256_hash"]}\n")
+            print(f"[+] Eurofighter updated signatures based off given signature name: {userinput}, for .exe/.dll files from MalwareBazaar.")
+
+        except requests.HTTPError as httpErr:
+            print(f"[!] A status code of {httpErr} was returned and signatures could not be updated. Check if MalwareBazaar is down.")
+            print(f"[!] Eurofighter could not update its signatures!")
     else:
         print(f"[x] Eurofighter could not deduce your input: {usrinput}")
         sys.exit(1)
         
 def getSignatures():
-    url = "https://bazaar.abuse.ch/api/v1/get_recent/?limit=100" # query for latest 100 signatures
+    # query for latest 100 signatures added and filter for file_type afterwards
+    url = "https://bazaar.abuse.ch/api/v1/" 
+    param = {"query": "get_recent", "limit": "100" }
     httpheaders = { "Auth-Key": "AUTH_KEY_HERE" }
     try:
-        response = requests.get(url, httpheaders)
+        response = requests.get(url, params=param, headers=httpheaders)
         response.raise_for_status()
         if response.status_code == 200: # nesting horror
             print(f"[+] A status code of 200 (OK) was returned from MalwareBazaar.")

@@ -54,7 +54,7 @@ def scan():
 
 def main():
     if sys.argv[1] == "--no-upgrade": print("[!] Eurofighter will not update the signature DB before scanning!")
-    press = input("[-] Enter 'q' to quit, press Enter to continue to scan a file, or 'f' to add a file or SHA256 hash to the signature database: ")
+    press = input("[-] Enter 'q' to quit, press Enter to continue to scan a file, or 'f' to add a file, SHA256 hash or add multiple signatures to the signature database: ")
     match press:
         case "q":
             print("[+] Eurofighter exited successfully.")
@@ -63,12 +63,13 @@ def main():
             print("[+] Eurofighter exited successfully.")
             sys.exit(0)
         case "f":
-            usrinput = input("[-] Enter either the filepath or sha256 hex digest of your desired file: ")
+            usrinput = input("[-] Enter either the filepath, SHA256 hex digest, or signature name (e.g. Rubeus, mimikatz, CobaltStrike) of your choice: ")
             manualAdd(usrinput)
         case "F":
-            usrinput = input("[-] Enter either the filepath or sha256 hex digest of your desired file: ")
+            usrinput = input("[-] Enter either the filepath, SHA256 hex digest, or signature name (e.g. Rubeus, mimikatz, CobaltStrike) of your choice: ")
             manualAdd(usrinput)
         case _:
             print("[+] Continue to scan menu...")
             scan()
+    print("[+] Eurofighter exited successfully.")
 main()
