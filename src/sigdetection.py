@@ -2,6 +2,15 @@ import hashlib
 import requests
 import re
 import sys
+import os
+from dotenv import load_dotenv
+
+AUTH_KEY = ""
+
+def initKey():
+    load_dotenv()
+    global AUTH_KEY
+    AUTH_KEY = os.getenv("AUTH_KEY")
 
 # return hex SHA256 signature of .exe/.dll file
 def genSHA256(filepath):
@@ -33,25 +42,27 @@ def manualAdd(usrinput):
                 print(f"[!] Eurofighter was served a duplicate entry and coult not include it: {usrinput}")
     elif (re.fullmatch(r"\w+", usrinput, re.IGNORECASE)): # match for one or more word characters 
         # query for 100 samples of given signature
-        url = "https://bazaar.abuse.ch/api/v1/"
-        param = {"query": "get_siginfo", "signature": {usrinput}, "limit": "100"}
-        httpheaders = { "Auth-Key": "AUTH_KEY_HERE" }
+        url = "https://mb-api.abuse.ch/api/v1/"
+        params = {"query": "get_siginfo", "signature": usrinput, "limit": "100"}
+        httpheaders = { "Auth-Key": AUTH_KEY }
         try:
-            response = requests.get(url, params=param, headers=httpheaders)
+            response = requests.post(url, data=params, headers=httpheaders)
             response.raise_for_status()
-            if response.status_code == 200: # nesting horror
-                print(f"[+] A status code of 200 (OK) was returned from MalwareBazaar.")
-                jsonresponse = response.json()
-                for element in jsonresponse["data"]: # check if the file is an exe or dll b4 adding to db
-                    if (element["file_type"] == "exe") or (element["file_type"] == "dll"):
-                        with open("signatures.txt", "a+") as db:
-                            content = db.read()
-                            if element["sha256_hash"] not in content:
-                                db.write(f"{element["sha256_hash"]}\n")
-            print(f"[+] Eurofighter updated signatures based off given signature name: {userinput}, for .exe/.dll files from MalwareBazaar.")
+            print(f"[+] A status code of 200 (OK) was returned from {response.url}.")
+            jsonresponse = response.json()
+            existing_hashes = set()
+            # set comprehension to add each line to existing hashes to prevent dupes
+            with open("signatures.txt", "r") as db:
+                existing_hashes = set(line.strip() for line in db)
+            with open("signatures.txt", "a+") as db:
+                for element in jsonresponse["data"]: # check filetype, hash dupes
+                    if element["file_type"] in ["exe", "dll"] and element["sha256_hash"] not in existing_hashes:
+                        db.write(f"{element["sha256_hash"]}\n")
+                        existing_hashes.add(element["sha256_hash"])
+            print(f"[+] Eurofighter updated signatures based off given signature name: {usrinput}, for .exe/.dll files from MalwareBazaar.")
 
-        except requests.HTTPError as httpErr:
-            print(f"[!] A status code of {httpErr} was returned and signatures could not be updated. Check if MalwareBazaar is down.")
+        except requests.RequestException as err:
+            print(f"[!] A request error occured: {err}")
             print(f"[!] Eurofighter could not update its signatures!")
     else:
         print(f"[x] Eurofighter could not deduce your input: {usrinput}")
@@ -59,25 +70,26 @@ def manualAdd(usrinput):
         
 def getSignatures():
     # query for latest 100 signatures added and filter for file_type afterwards
-    url = "https://bazaar.abuse.ch/api/v1/" 
-    param = {"query": "get_recent", "limit": "100" }
-    httpheaders = { "Auth-Key": "AUTH_KEY_HERE" }
+    url = "https://mb-api.abuse.ch/api/v1/" 
+    params = {"query": "get_recent", "selector": "100" }
+    httpheaders = { "Auth-Key": AUTH_KEY }
     try:
-        response = requests.get(url, params=param, headers=httpheaders)
+        response = requests.post(url, data=params, headers=httpheaders)
         response.raise_for_status()
-        if response.status_code == 200: # nesting horror
-            print(f"[+] A status code of 200 (OK) was returned from MalwareBazaar.")
-            jsonresponse = response.json()
-            for element in jsonresponse["data"]: # check if the file is an exe or dll b4 adding to db
-                if (element["file_type"] == "exe") or (element["file_type"] == "dll"):
-                    with open("signatures.txt", "a+") as db:
-                        content = db.read()
-                        if element["sha256_hash"] not in content:
-                            db.write(f"{element["sha256_hash"]}\n")
-            print("[+] Eurofighter updated signatures based off latest 100 signatures matching .exe/.dll files from MalwareBazaar.")
-
-    except requests.HTTPError as httpErr:
-        print(f"[!] A status code of {httpErr} was returned and signatures could not be updated. Check if MalwareBazaar is down.")
+        print(f"[+] A status code of 200 (OK) was returned from {response.url}.")
+        jsonresponse = response.json()
+        existing_hashes = set()
+        # set comprehension to add each line to existing hashes to prevent dupes
+        with open("signatures.txt", "r") as db:
+            existing_hashes = set(line.strip() for line in db)
+        with open("signatures.txt", "a+") as db:
+            for element in jsonresponse["data"]: # check filetype, hash dupes
+                if element["file_type"] in ["exe", "dll"] and element["sha256_hash"] not in existing_hashes:
+                    db.write(f"{element["sha256_hash"]}\n")
+                    existing_hashes.add(element["sha256_hash"])
+        print(f"[+] Eurofighter updated signatures based off 100 most recent signatures, for .exe/.dll files from MalwareBazaar.")
+    except requests.RequestException as err:
+        print(f"Something went wrong: {err}")
         print(f"[!] Eurofighter could not update its signatures!")
 
 # returns True if a match was found

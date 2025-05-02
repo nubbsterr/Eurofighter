@@ -1,9 +1,11 @@
-import os
 import sys
 import re
+import time
 
-from sigdetection import genSHA256, getSignatures, manualAdd, compareDigestToDB
+from sigdetection import initKey ,genSHA256, getSignatures, manualAdd, compareDigestToDB
+from heuristics import decodeBase64, isBase64
 
+start_time = time.time()
 print(r"""
  _______                    ___ _       _                      
 (_______)                  / __|_)     | |     _               
@@ -13,10 +15,10 @@ print(r"""
 |_______)____/|_|   \___/ |_|  |_|\___ |_| |_| \__)_____)_|    
                                  (_____|
 
-v1.0.0
-Eurofighter only accepts DLL and EXE files at the moment!
-
---no-upgrade to not automatically fetch new signatures from MalwareBazaar when scanning files
+v1.1.0 by Nubb @ https://github.com/nubbsterr/Eurofighter
+[!] Eurofighter only accepts DLL and EXE files at the moment!
+[-] Use '--no-upgrade' to not automatically query latest signatures from MalwareBazaar when scanning files 
+[-] Use '--upgrade' to immediately query latest signatures from MalwareBazaar.
       """)
 
 def quarantine(filepath):
@@ -41,7 +43,7 @@ def scan():
                 if sys.argv[1] == "--no-upgrade":
                     print("[!] Eurofighter will not update the signature DB before scanning!")
                 else:
-                    print(f"[+] Updating signature DB...")
+                    print(f"[+] Querying latest signatures...")
                     getSignatures()
                 print(f"[+] Comparing digest to DB...")
                 if compareDigestToDB(digest):
@@ -53,7 +55,13 @@ def scan():
                 sys.exit(1)
 
 def main():
+    initKey()
     if sys.argv[1] == "--no-upgrade": print("[!] Eurofighter will not update the signature DB before scanning!")
+    if sys.argv[1] == "--upgrade": 
+        print("[!] Eurofighter will query latest signatures then exit!")
+        getSignatures()
+        print(f"[-] Eurofighter finished execution after {time.time() - start_time} seconds.")
+        sys.exit(0)
     press = input("[-] Enter 'q' to quit, press Enter to continue to scan a file, or 'f' to add a file, SHA256 hash or add multiple signatures to the signature database: ")
     match press:
         case "q":
@@ -72,4 +80,7 @@ def main():
             print("[+] Continue to scan menu...")
             scan()
     print("[+] Eurofighter exited successfully.")
+
+start_time = time.time()
 main()
+print(f"[-] Eurofighter finished execution after {time.time() - start_time} seconds.")
