@@ -15,8 +15,9 @@ print(r"""
 |_______)____/|_|   \___/ |_|  |_|\___ |_| |_| \__)_____)_|    
                                  (_____|
 
-v1.1.0 by Nubb @ https://github.com/nubbsterr/Eurofighter
+v1.1.1 by Nubb @ https://github.com/nubbsterr/Eurofighter
 [!] Eurofighter only accepts DLL and EXE files at the moment!
+[-] Enter Crtl+C if you ever need to forcefully exit!
 [-] Use '--no-upgrade' to not automatically query latest signatures from MalwareBazaar when scanning files 
 [-] Use '--upgrade' to immediately query latest signatures from MalwareBazaar.
       """)
@@ -36,7 +37,7 @@ def scan():
             sys.exit(0)
         case _:
             if (re.search(r"\.exe$", scan)) or (re.search(r"\.dll$", scan)): 
-                print("[+] Eurofighter will scan this .exe/.dll file!")
+                print(f"[+] Eurofighter will scan this .exe/.dll file: {scan}")
                 print("[+] Beginning signature detection...")
                 digest = genSHA256(scan)
                 print(f"[+] Eurofighter successfully generated a hex digest: {digest}")
@@ -74,7 +75,7 @@ def main():
             usrinput = input("[-] Enter either the filepath, SHA256 hex digest, or signature name (e.g. Rubeus, mimikatz, CobaltStrike) of your choice: ")
             manualAdd(usrinput)
         case "F":
-            usrinput = input("[-] Enter either the filepath, SHA256 hex digest, or signature name (e.g. Rubeus, mimikatz, CobaltStrike) of your choice: ")
+            usrinput = input("[-] Enter either the filepath, SHA256 hex digest, or signature name (e.g. Rubeus, Mimikatz, CobaltStrike) of your choice: ")
             manualAdd(usrinput)
         case _:
             print("[+] Continue to scan menu...")

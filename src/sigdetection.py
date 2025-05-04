@@ -95,12 +95,10 @@ def getSignatures():
 # returns True if a match was found
 def compareDigestToDB(digest):
     with open("signatures.txt", "r") as db:
-        content = db.read()
-        dblines = content.splitlines()
-        for signature in dblines:
-            if digest == signature:
-                print(f"[+] A match was found between the digest and signature!\nSignature: {signature}\nDigest: {digest}")
-                return True
+        dbsignatures = set(line.strip() for line in db)
+        if digest in dbsignatures:
+            print(f"[+] A match was found between the digest and a signature!\nDigest: {digest}")
+            return True
         print(f"[+] No match was found in the DB for digest: {digest}")
         return False
 
