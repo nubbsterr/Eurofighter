@@ -21,19 +21,7 @@ Project status and agenda can be found below. Everything is a work-in-progress a
     - Force delete the file using `DeleteFile(<filename.exe/dll>)` in code or just call `std::system`.
 ## Heuristic Analysis (100% apathy)
 ### Static
-- Check PE info; check PE header for Import/Export Directory Tables (IAT/EAT) for DLLs and imported functions. 
-    - Namely createremotethread, writeprocessmemory, virtualalloc and whatnot.
-- Check .text section for malicious instructions and obfuscation in PE. If .text is small then it may be a packed sample!
-- Run strings command on the sample and check its output for bad stuff 
-    - Detect and decode base64 encoded strings and determine if bits are malicious or not.
-    - Check for sus stuff; `cmd.exe`, `powershell.exe`, `regsvr32.exe`, `Rundll32.exe`, URLs, IPs, API functions, etc. 
-        - API functions include: 
-            - `VirtualAlloc`; allocate writable/readable/executable memory, first step to executing malware in memory!
-            - `WriteProcessMemory`; write process code to memory then execute in thread
-            - `CreateRemoteThread`; create execution thread in current memory space, easy way to execute in memory, used in tandem with WriteProcessMemory
-            - `LoadLibrary`; load a DLL, next step would maybe be checking the DLL being loaded?
-            - `GetProcAddress`; get address of a function in running process to potentially execute it  
-            - `NtQueryInformationProcess`; malware will exit if debugger is detected for evasion
+- PE analysis and heuristics are almost done! Need to rest soon.
     - Will test with actual samples before doing this! See [theZoo!](https://github.com/ytisf/theZoo)
 ### Dynamic
 - Mock sandbox solution where we:

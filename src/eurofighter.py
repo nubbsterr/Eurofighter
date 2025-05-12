@@ -3,7 +3,7 @@ import re
 import time
 
 from sigdetection import initKey ,genSHA256, getSignatures, manualAdd, compareDigestToDB
-from heuristics import decodeBase64, isBase64
+from heuristics import execpStrings, parsePE
 
 start_time = time.time()
 print(r"""
@@ -15,19 +15,36 @@ print(r"""
 |_______)____/|_|   \___/ |_|  |_|\___ |_| |_| \__)_____)_|    
                                  (_____|
 
-v1.1.1 by Nubb @ https://github.com/nubbsterr/Eurofighter
+v2.0.0 by Nubb @ https://github.com/nubbsterr/Eurofighter
 [!] Eurofighter only accepts DLL and EXE files at the moment!
 [-] Enter Crtl+C if you ever need to forcefully exit!
 [-] Use '--no-upgrade' to not automatically query latest signatures from MalwareBazaar when scanning files 
 [-] Use '--upgrade' to immediately query latest signatures from MalwareBazaar.
       """)
-
 def quarantine(filepath):
     # insert quarantine logic here
     print("[+] Eurofighter sucessfully quarantined file: " + filepath)
 
+# suggest quarantine i PE or strings returns malicious details, takes filepath and message for what indicator was found
+def suggestQuarantine(filepath):
+    print(f"[-] Quarantine has been suggested by Eurofighter for {filepath}. Quarantine is suggested.")
+    press = input("[+] Quarantine this file? Not quarantining will exit Eurofighter [y/n]: ")
+    match press:
+        case "y":
+            quarantine(filepath)
+        case "Y":
+            quarantine(filepath)
+        case "n":
+            print("[+] Eurofighter exited successfully.")
+            sys.exit(0)
+        case "N":
+            print("[+] Eurofighter exited successfully.")
+            sys.exit(0)
+        case _:
+            quarantine(filepath)
+
 def scan():
-    scan = input("[-] Enter the filepath of the file to scan or press 'q' to quit: ")
+    scan = input("[-] Enter the absolute filepath of the file to scan or press 'q' to quit: ")
     match scan:
         case "q":
             print("[+] Eurofighter exited successfully.")
@@ -48,9 +65,11 @@ def scan():
                     getSignatures()
                 print(f"[+] Comparing digest to DB...")
                 if compareDigestToDB(digest):
-                    print(f"[+] Eurofighter completed signature-based analysis.")
-                else:
                     quarantine(scan)
+                else:
+                    print(f"[-] Continuing to heuristic analysis...")
+                    execpStrings(scan)
+                    parsePE(scan)
             else:
                 print("[x] Eurofighter couldn't determine if the file is an .exe/.dll file, and needs to exit.")
                 sys.exit(1)
