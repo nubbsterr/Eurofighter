@@ -1,5 +1,7 @@
 import base64
 import re
+import subprocess
+import pefile
 
 # decode base64 ciphertext,  returns decoded ASCII string
 def decodeBase64(ciphertext):
@@ -21,3 +23,29 @@ def isBase64(ciphertext):
         return True
     except Exception:
         return False
+
+# run strings command and parse outputs for suspicious commands and whatnot
+def execpStrings():
+    pass
+
+# parse PE for sus stuff; dlls and functions in IAT/EAT
+def parsePE(filepath):
+    try:
+        # load and parse pefile 
+        pe = pefile.PE(filepath)
+
+        # access sections
+        for section in pe.sections:
+            print(section.Name, hex(section.VirtualAddress), hex(section.Misc_VirtualSize)) 
+    
+        # list imported and exported symbols
+        pe.parse_data_directories()
+        for entry in pe.DIRECTORY_ENTRY_IMPORT:
+            print entry.dll
+            for imp in entry.imports:
+                print '\t', hex(imp.address), imp.name
+
+        for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+            print hex(pe.OPTIONAL_HEADER.ImageBase + exp.address), exp.name, exp.ordinal
+    except (IOError, pefile.PEFormatError, Exception) as err:
+        print(f"An unexpected error occured while trying to parse PE details: {err}")
