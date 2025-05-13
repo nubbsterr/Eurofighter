@@ -15,7 +15,8 @@ print(r"""
 |_______)____/|_|   \___/ |_|  |_|\___ |_| |_| \__)_____)_|    
                                  (_____|
 
-v2.0.0 by Nubb @ https://github.com/nubbsterr/Eurofighter
+v2.1.0 by Nubb @ https://github.com/nubbsterr/Eurofighter
+[-] Eurofighter now has an ELF executable for Linux! Found in build/ directory! Testing only.
 [!] Eurofighter only accepts DLL and EXE files at the moment!
 [-] Enter Crtl+C if you ever need to forcefully exit!
 [-] Use '--no-upgrade' to not automatically query latest signatures from MalwareBazaar when scanning files 

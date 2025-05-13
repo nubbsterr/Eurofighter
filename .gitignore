@@ -1,1 +1,4 @@
 .env
+src/__pycache__/
+src/build/
+src/Eurofighter.spec
