@@ -10,19 +10,23 @@ By no means is this project supposed to be a REAL anti-virus; it is a proof-of-c
 
 Yes, I do plan to discuss how to evade Eurofighter, though that shouldn't be hard. Even Defender has [DefenderCheck](https://github.com/matterpreter/DefenderCheck) to deal with among other tools xD
 
+# Compile From Source
+You can compile the Eurofighter executable for Linux/Windows using `pyinstaller`!
+1. Install `pyinstaller` using `pipx` with `pipx install pyinstaller`. You can use `pip` but I don't have a Python venv going so I resort to `pipx`.
+2. Clone this repo using `git clone https://github.com/nubbsterr/Eurofighter.git`
+3. `cd` Eurofighter/src to enter the source directory of Eurofighter. 
+4. Compile using `pyinstaller` with the command: `pyinstaller --onefile --name Eurofighter eurofighter.py`. A Linux or Windows executable will be generated depending on what system you are on (I legit have 0 care for MacOS).
+
 # Project Status
 Project status and agenda can be found below. Everything is a work-in-progress and the entire project is designed to be a proof-of-concept, not a real AV (for now, maybe.) If you have suggestions, or wish to contribute, please feel free to contact me on Discord @ nubbieeee or submit a PR!
 
 # Project Agenda
 ## Basic Stuff
-- Add common malware/program to DB as well; mimikatz, rubeus, etc.
-- Quarantine sample; put it in some protected folder, remove execution permissions, or just delete the sample forcefully.
-    - Could rename malware as `malware-<computed_hash>` then move to a specified 'quarantine' folder and remove execution privileges using `icacls <malware_file.exe/dll> /remove:g <username>:X /c /t` .
+- Quarantine sample; put it in some protected read only folder, or just delete the sample forcefully.
     - Force delete the file using `DeleteFile(<filename.exe/dll>)` in code or just call `std::system`.
 ## Heuristic Analysis (100% apathy)
 ### Static
-- PE analysis and heuristics are almost done! Need to rest soon.
-    - Will test with actual samples before doing this! See [theZoo!](https://github.com/ytisf/theZoo)
+- Will test with actual samples before doing this! See [theZoo!](https://github.com/ytisf/theZoo)
 ### Dynamic
 - Mock sandbox solution where we:
     1) Create but suspend the malware process

@@ -51,6 +51,7 @@ def manualAdd(usrinput):
             print(f"[+] A status code of 200 (OK) was returned from {response.url}.")
             jsonresponse = response.json()
             existing_hashes = set()
+            print(f"[+] Server response time: {response.elapsed}")
             # set comprehension to add each line to existing hashes to prevent dupes
             with open("signatures.txt", "r") as db:
                 existing_hashes = set(line.strip() for line in db)
@@ -79,6 +80,7 @@ def getSignatures():
         print(f"[+] A status code of 200 (OK) was returned from {response.url}.")
         jsonresponse = response.json()
         existing_hashes = set()
+        print(f"[+] Server response time: {response.elapsed}")
         # set comprehension to add each line to existing hashes to prevent dupes
         with open("signatures.txt", "r") as db:
             existing_hashes = set(line.strip() for line in db)
