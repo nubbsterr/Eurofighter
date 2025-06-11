@@ -2,7 +2,6 @@ import base64
 import re
 import subprocess
 import pefile
-from eurofighter import suggestQuarantine
 
 # decode base64 ciphertext,  returns decoded ASCII string
 def decodeBase64(ciphertext):
@@ -36,11 +35,8 @@ def execpStrings(filepath):
             decoded = decodeBase64(strings)
             if decoded in malstrings: 
                 print(f"[+] A potentially malicious string was found in {filepath}.\nString found: {strings}")
-                suggestQuarantine(filepath)
-
         if strings in malstrings: 
             print(f"[+] A potentially malicious string was found in {filepath}.\nString found: {strings}")
-            suggestQuarantine(filepath)
         else: pass
 
 # parse PE for sus stuff; dlls and functions in IAT/EAT
@@ -71,6 +67,5 @@ def parsePE(filepath):
             if exp.name in malstrings_func: input(f"A potentially malicious function, {exp.name}, is an exported symbol of this PE file. Enter any key to continue.")
             print (hex(pe.OPTIONAL_HEADER.ImageBase + exp.address), exp.name, exp.ordinal)
         input("[-] PE parsing is complete. Please take time to read over the above info dump and decide to quarantine or not.")
-        suggestQuarantine(filepath)
     except (IOError, pefile.PEFormatError, Exception) as err:
-        print(f"An unexpected error occured while trying to parse PE details: {err}")
+        print(f"[!] An unexpected error occured while trying to parse PE details: {err}")

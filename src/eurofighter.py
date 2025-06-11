@@ -1,31 +1,32 @@
-import sys
-import re
-import time
+import sys, re, os, subprocess
 
-from sigdetection import initKey ,genSHA256, getSignatures, manualAdd, compareDigestToDB
+from sigdetection import initKey, genSHA256, getSignatures, manualAdd, compareDigestToDB
 from heuristics import execpStrings, parsePE
 
-start_time = time.time()
-print(r"""
- _______                    ___ _       _                      
-(_______)                  / __|_)     | |     _               
- _____   _   _  ____ ___ _| |__ _  ____| |__ _| |_ _____  ____ 
-|  ___) | | | |/ ___) _ (_   __) |/ _  |  _ (_   _) ___ |/ ___)
-| |_____| |_| | |  | |_| || |  | ( (_| | | | || |_| ____| |    
-|_______)____/|_|   \___/ |_|  |_|\___ |_| |_| \__)_____)_|    
-                                 (_____|
-
-v2.1.1 by Nubb @ https://github.com/nubbsterr/Eurofighter
-[!] Eurofighter only accepts DLL and EXE files at the moment!
-[-] Enter Crtl+C if you ever need to forcefully exit!
-[-] Use '--no-upgrade' to not automatically query latest signatures from MalwareBazaar when scanning files 
-[-] Use '--upgrade' to immediately query latest signatures from MalwareBazaar.
+def help():
+    print(r"""
+[-] Use 'no-upgrade' to not automatically query latest signatures from MalwareBazaar when scanning files 
+[-] Use 'upgrade' to immediately query latest signatures from MalwareBazaar.
+Example Usage: `Eurofighter upgrade` or `python3 eurofighter.py upgrade` will update with signatures DB, depending on if you are executing the Python script or built executable.
       """)
-def quarantine(filepath):
-    # insert quarantine logic here
-    print("[+] Eurofighter sucessfully quarantined file: " + filepath)
+    sys.exit(0)
 
-# suggest quarantine i PE or strings returns malicious details, takes filepath and message for what indicator was found
+# remove exec permissions and move to quarantine dir 
+def quarantine(filepath):
+    os.makedirs("eurofighter_quarantine", exist_ok=True)
+    if os.name == "posix":
+        subprocess.run(["sudo", "chmod", "-x", filepath], stdout=True)
+        subprocess.run(["mv", filepath, "eurofighter_quarantine"], stdout=True)
+    elif os.name == "nt":
+        subprocess.run(["icacls", filepath, "/deny", "Everyone"], stdout=True)
+        subprocess.run(["move", filepath, "eurofighter_quarantine"], stdout=True)
+    else:
+        print(f"[!] Operating system could not be identified. os.name shows: {os.name}?")
+        sys.exit(0)
+    print(f"[+] Eurofighter removed execution permissions and sent file to `eurofighter_quarantine` directory: {filepath}")
+    print(f"[+] Execution permissions")
+
+# suggest quarantine if PE or strings returns malicious details
 def suggestQuarantine(filepath):
     print(f"[-] Quarantine has been suggested by Eurofighter for {filepath}. Quarantine is suggested.")
     press = input("[+] Quarantine this file? Not quarantining will exit Eurofighter [y/n]: ")
@@ -70,17 +71,21 @@ def scan():
                     print(f"[-] Continuing to heuristic analysis...")
                     execpStrings(scan)
                     parsePE(scan)
+                    suggestQuarantine(scan)
             else:
                 print("[x] Eurofighter couldn't determine if the file is an .exe/.dll file, and needs to exit.")
                 sys.exit(1)
 
 def main():
     initKey()
-    if sys.argv[1] == "--no-upgrade": print("[!] Eurofighter will not update the signature DB before scanning!")
-    if sys.argv[1] == "--upgrade": 
+    print("Eurofighter v2.2.0 by nubb (nubbsterr)")
+    print("[!] Make sure you are running Eurofighter will elevated permissions!")
+    print("[!] Eurofighter only accepts DLL and EXE files at the moment!")
+    if sys.argv[1] == 'help': help()
+    if sys.argv[1] == "no-upgrade": print("[!] Eurofighter will not update the signature DB before scanning!")
+    if sys.argv[1] == "upgrade": 
         print("[!] Eurofighter will query latest signatures then exit!")
         getSignatures()
-        print(f"[-] Eurofighter finished execution after {time.time() - start_time} seconds.")
         sys.exit(0)
     press = input("[-] Enter 'q' to quit, press Enter to continue to scan a file, or 'f' to add a file, SHA256 hash or add multiple signatures to the signature database: ")
     match press:
@@ -101,6 +106,5 @@ def main():
             scan()
     print("[+] Eurofighter exited successfully.")
 
-start_time = time.time()
 main()
-print(f"[-] Eurofighter finished execution after {time.time() - start_time} seconds.")
+print(f"[-] Eurofighter finished execution.")

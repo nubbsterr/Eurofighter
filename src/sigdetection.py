@@ -69,8 +69,8 @@ def manualAdd(usrinput):
         print(f"[x] Eurofighter could not deduce your input: {usrinput}")
         sys.exit(1)
         
+# query for latest 100 signatures added and filter for file_type afterwards
 def getSignatures():
-    # query for latest 100 signatures added and filter for file_type afterwards
     url = "https://mb-api.abuse.ch/api/v1/" 
     params = {"query": "get_recent", "selector": "100" }
     httpheaders = { "Auth-Key": AUTH_KEY }
