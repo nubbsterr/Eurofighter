@@ -27,9 +27,9 @@ def quarantine(filepath):
     print(f"[+] Execution permissions")
 
 # suggest quarantine if PE or strings returns malicious details
-def suggestQuarantine(filepath):
-    print(f"[-] Quarantine has been suggested by Eurofighter for {filepath}. Quarantine is suggested.")
-    press = input("[+] Quarantine this file? Not quarantining will exit Eurofighter [y/n]: ")
+def suggestQuarantine(filepath, score):
+    print(f"[+] Eurofighter found {score} artifacts in {filepath}. Generally, any amount of artifacts is worth investigating. It is encouraged to quarantine if in doubt at this point.")
+    press = input("[+] Would you like to quarantine this file? Not quarantining will exit Eurofighter [y/n]: ")
     match press:
         case "y":
             quarantine(filepath)
@@ -69,9 +69,9 @@ def scan():
                     quarantine(scan)
                 else:
                     print(f"[-] Continuing to heuristic analysis...")
-                    execpStrings(scan)
-                    parsePE(scan)
-                    suggestQuarantine(scan)
+                    stringScore = execpStrings(scan)
+                    peScore = parsePE(scan)
+                    suggestQuarantine(scan, (stringScore+peScore))
             else:
                 print("[x] Eurofighter couldn't determine if the file is an .exe/.dll file, and needs to exit.")
                 sys.exit(1)

@@ -26,6 +26,7 @@ def isBase64(ciphertext):
 
 # run strings command and parse outputs for suspicious commands and whatnot
 def execpStrings(filepath):
+    artifacts = 0
     malstrings = {"cmd.exe", "powershell.exe", "lsass.exe", "comsvcs.dll", "advapi32.dll", "kernel32.dll", "user32.dll", "ws2_32.dll", "urlmon.dll", "shell32.dll", "msvcrt.dll", "ntdll.dll", "wininet.dll", "regsvr32.exe", "Rundll32.exe", "VirtualAlloc", "WriteProcessMemory", "CreateRemoteThread", "LoadLibrary", "GetProcAddress", "NtqueryInformationProcess"}
     cmd = subprocess.run(f"strings {filepath}", shell=True, check=True, capture_output=True, encoding="utf-8")
     stringsout = cmd.stdout.splitlines() # split at newlines then iterate over predefined set of malicious strings
@@ -35,12 +36,16 @@ def execpStrings(filepath):
             decoded = decodeBase64(strings)
             if decoded in malstrings: 
                 print(f"[+] A potentially malicious string was found in {filepath}.\nString found: {strings}")
+                artifacts+=1
         if strings in malstrings: 
             print(f"[+] A potentially malicious string was found in {filepath}.\nString found: {strings}")
+            artifacts+=1
         else: pass
+    return artifacts
 
 # parse PE for sus stuff; dlls and functions in IAT/EAT
 def parsePE(filepath):
+    artifacts = 0
     try:
         malstrings_dll = {"comsvcs.dll", "advapi32.dll", "kernel32.dll", "user32.dll", "ws2_32.dll", "urlmon.dll", "shell32.dll", "msvcrt.dll", "ntdll.dll", "wininet.dll", "Rundll32.exe"}
         malstrings_func = {"VirtualAlloc", "VirtualAllocEx", "WriteProcessMemory", "ReadProcessMemory", "CreateProcessA", "OpenProcess", "TerminateProcess", "SetWindowHookExA", "CallNextHookEx", "CreateRemoteThread", "CreateThread", "LoadLibraryA", "GetProcAddress", "RegCreateKeyA", "URLDownloadToFile", "InternetOpenUrlA", "InternetOpenA", "InternetReadFile", "NtqueryInformationProcess"}
@@ -58,14 +63,19 @@ def parsePE(filepath):
         pe.dump_info()
         print("========================== END PE INFO DUMP ============================")
         for entry in pe.DIRECTORY_ENTRY_IMPORT:
-            if entry.dll in malstrings_dll: input(f"A potentially malicious DLL, {entry.dll}, is an imported symbol of this file. Enter any key to continue.")
-            print(entry.dll)
+            if entry.dll in malstrings_dll: 
+                print(entry.dll)
+                input(f"A potentially malicious DLL, {entry.dll}, is an imported symbol of this file. Enter any key to continue.")
+                artifacts+=1
             for imp in entry.imports:
                 print('\t', hex(imp.address), imp.name)
 
         for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
-            if exp.name in malstrings_func: input(f"A potentially malicious function, {exp.name}, is an exported symbol of this PE file. Enter any key to continue.")
             print (hex(pe.OPTIONAL_HEADER.ImageBase + exp.address), exp.name, exp.ordinal)
+            if exp.name in malstrings_func: 
+                input(f"A potentially malicious function, {exp.name}, is an exported symbol of this PE file. Enter any key to continue.")
+                artifacts+=1    
         input("[-] PE parsing is complete. Please take time to read over the above info dump and decide to quarantine or not.")
     except (IOError, pefile.PEFormatError, Exception) as err:
         print(f"[!] An unexpected error occured while trying to parse PE details: {err}")
+    return artifacts
